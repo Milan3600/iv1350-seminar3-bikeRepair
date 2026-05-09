@@ -9,9 +9,7 @@ import se.kth.iv1350.bikerepair.integration.CustomerDTO;
 import se.kth.iv1350.bikerepair.integration.Printer;
 import se.kth.iv1350.bikerepair.integration.RegistryCreator;
 import se.kth.iv1350.bikerepair.model.Amount;
-import se.kth.iv1350.bikerepair.model.RepairOrder;
 import se.kth.iv1350.bikerepair.model.RepairOrderDTO;
-import se.kth.iv1350.bikerepair.model.RepairOrderState;
 
 
 public class ControllerTest {
@@ -106,13 +104,12 @@ public class ControllerTest {
     {
         contr.createRepairOrder(repairOrderDTO);
         String validPhoneNumber = repairOrderDTO.getCustomerPhoneNumber();
+        String validBikeSerialNo = repairOrderDTO.getBikeSerialNo();
 
-        RepairOrder result = contr.findRepairOrderByPhoneNumber(validPhoneNumber);
-        assertEquals(repairOrderDTO.getCustomerPhoneNumber(),
-                     result.getCustomerDetails().getPhoneNumber(),
+        RepairOrderViewDTO result = contr.findRepairOrderByPhoneNumber(validPhoneNumber);
+        assertTrue(result.toString().contains(validPhoneNumber),
                      "Wrong repair order was returned");
-        assertEquals(repairOrderDTO.getBikeSerialNo(),
-                     result.getCustomerDetails().getBikeDetails().getSerialNumber(),
+        assertTrue(result.toString().contains(validBikeSerialNo),
                      "Bike serial number mismatch");
     }
     
@@ -120,8 +117,8 @@ public class ControllerTest {
     public void testFindRepairOrderByPhoneNumberNonexisting()
     {
         String madeUpPhoneNumber = "0123456789";
-        RepairOrder expResult = null;
-        RepairOrder result = contr.findRepairOrderByPhoneNumber(madeUpPhoneNumber);
+        RepairOrderViewDTO expResult = null;
+        RepairOrderViewDTO result = contr.findRepairOrderByPhoneNumber(madeUpPhoneNumber);
         assertEquals(expResult, result, "Made up phone number returned a repair order");
     }
     
@@ -129,8 +126,8 @@ public class ControllerTest {
     public void testFindRepairOrderByPhoneNumberEmptyString()
     {
         String emptyString = "";
-        RepairOrder expResult = null;
-        RepairOrder result = contr.findRepairOrderByPhoneNumber(emptyString);
+        RepairOrderViewDTO expResult = null;
+        RepairOrderViewDTO result = contr.findRepairOrderByPhoneNumber(emptyString);
         assertEquals(expResult, result, "An empty string returned a repair order");
     }
     
@@ -138,8 +135,8 @@ public class ControllerTest {
     public void testFindRepairOrderByPhoneNumberEmptyRegistry()
     {
         String phoneNumber = "0498323822";
-        RepairOrder expResult = null;
-        RepairOrder result = contr.findRepairOrderByPhoneNumber(phoneNumber);
+        RepairOrderViewDTO expResult = null;
+        RepairOrderViewDTO result = contr.findRepairOrderByPhoneNumber(phoneNumber);
         assertEquals(expResult, result, "Empty registry returned a repair order");
     }
     
@@ -149,15 +146,14 @@ public class ControllerTest {
         String phoneNumber = repairOrderDTO.getCustomerPhoneNumber();
         contr.createRepairOrder(repairOrderDTO);
         
-        RepairOrder repOrder = contr.findRepairOrderByPhoneNumber
+        RepairOrderViewDTO repOrder = contr.findRepairOrderByPhoneNumber
         (phoneNumber);
         
         int repairOrderId = repOrder.getRepairOrderId();
         contr.addDiagnosticResult(repairOrderId, 0, "TEST");
         
-        String updatedResult = contr.findRepairOrderByPhoneNumber(phoneNumber).
-                getDiagnosticReport().getDiagnosticTask(0).getResult();
-        assertEquals("TEST", updatedResult, "Diagnostic task's result"
+        RepairOrderViewDTO updatedOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
+        assertTrue(updatedOrder.toString().contains("TEST"), "Diagnostic task's result"
                 + "was not updated");
     }
     
@@ -166,15 +162,16 @@ public class ControllerTest {
     {
         String phoneNumber = repairOrderDTO.getCustomerPhoneNumber();
         contr.createRepairOrder(repairOrderDTO);
-        RepairOrder initialRepairOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
-        int repairOrderId = initialRepairOrder.getRepairOrderId();
+        RepairOrderViewDTO initialRepairOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
         
-        int beforeTaskCount = initialRepairOrder.getRepairTasks().size();
+        int repairOrderId = initialRepairOrder.getRepairOrderId();
         contr.addRepairTask(repairOrderId, "Test", "Just a test", new Amount(10, "EUR"));
         
-        RepairOrder updatedRepairOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
-        int afterTaskCount = updatedRepairOrder.getRepairTasks().size();
-        assertEquals(beforeTaskCount + 1, afterTaskCount, "Task was not added");
+        RepairOrderViewDTO updatedRepairOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
+        
+        String afterOrder = updatedRepairOrder.toString();
+        assertTrue(afterOrder.contains("Test"), "Repair task was not added");
+        assertTrue(afterOrder.contains("Just a test"), "Repair task description missing");
     }
     
     @Test
@@ -182,11 +179,13 @@ public class ControllerTest {
     {
         String phoneNumber = repairOrderDTO.getCustomerPhoneNumber();
         contr.createRepairOrder(repairOrderDTO);
-        RepairOrder repairOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
+        
+        RepairOrderViewDTO repairOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
         int repairOrderId = repairOrder.getRepairOrderId();
         contr.acceptRepairOrder(repairOrderId);
-        RepairOrderState expState = RepairOrderState.ACCEPTED;
-        RepairOrderState result = contr.findRepairOrderByPhoneNumber(phoneNumber).getState();
-        assertEquals(expState, result, "The state was not changed to ACCEPTED");
+        
+        RepairOrderViewDTO updatedOrder = contr.findRepairOrderByPhoneNumber(phoneNumber);
+        assertTrue(updatedOrder.toString().contains("ACCEPTED"), "The state was not changed"
+                + "to ACCEPTED");
     }
 }

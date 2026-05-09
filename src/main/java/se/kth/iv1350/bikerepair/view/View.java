@@ -2,9 +2,9 @@ package se.kth.iv1350.bikerepair.view;
 
 import java.util.List;
 import se.kth.iv1350.bikerepair.controller.Controller;
+import se.kth.iv1350.bikerepair.controller.RepairOrderViewDTO;
 import se.kth.iv1350.bikerepair.integration.CustomerDTO;
 import se.kth.iv1350.bikerepair.model.Amount;
-import se.kth.iv1350.bikerepair.model.RepairOrder;
 import se.kth.iv1350.bikerepair.model.RepairOrderDTO;
 
 /**
@@ -41,9 +41,9 @@ public class View
         contr.createRepairOrder(repairOrderDTO);
         System.out.println("The repair order has been created and saved to the database");
         
-        List<RepairOrder> allRepairOrders = contr.findAllRepairOrders();
+        List<RepairOrderViewDTO> allRepairOrders = contr.findAllRepairOrders();
         System.out.println("Result of retrieving all repair orders below ");
-        for(RepairOrder repairOrder : allRepairOrders)
+        for(RepairOrderViewDTO repairOrder : allRepairOrders)
         {
             System.out.println(repairOrder);
         }
@@ -57,7 +57,7 @@ public class View
         "Replace worn components and adjust gear indexing", new Amount(28, "EUR"));
         System.out.println("The repair task was added to the repair order");
         
-        RepairOrder repairOrder = contr.findRepairOrderByPhoneNumber("072123456");
+        RepairOrderViewDTO repairOrder = contr.findRepairOrderByPhoneNumber("072123456");
         System.out.println("Found repair order with specified phone number " + repairOrder);
         
         System.out.println("The repair order has been accepted and will be printed shortly.");

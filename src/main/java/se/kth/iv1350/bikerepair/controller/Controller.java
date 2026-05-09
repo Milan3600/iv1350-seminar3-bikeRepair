@@ -1,5 +1,6 @@
 package se.kth.iv1350.bikerepair.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import se.kth.iv1350.bikerepair.integration.CustomerDTO;
 import se.kth.iv1350.bikerepair.integration.RegistryCreator;
@@ -66,23 +67,42 @@ public class Controller
     }
     
     /**
-     * Returns all the stored repair orders.
-     * @return All repair orders in a list.
-     */
-    public List<RepairOrder> findAllRepairOrders()
+    * Returns all the stored repair orders as DTOs.
+    * @return A list of <code>RepairOrderViewDTO</code> containing
+    * information of all repair orders.
+    */
+    public List<RepairOrderViewDTO> findAllRepairOrders()
     {
-        return repairOrderRegistry.findAllRepairOrders();
+        List<RepairOrder> repairOrders =
+            repairOrderRegistry.findAllRepairOrders();
+
+        List<RepairOrderViewDTO> repairOrderViewDTOs =
+            new ArrayList<>();
+
+        for(RepairOrder repairOrder : repairOrders)
+            {
+               repairOrderViewDTOs.add(
+               createRepairOrderViewDTO(repairOrder));
+            }
+
+        return repairOrderViewDTOs;
     }
     
-    /**
-     * Finds the repair order that has the specified phone number.
-     * @param phoneNumber The phone number used to find the right repair order.
-     * @return Repair order matching the phone number.
-     */
-    public RepairOrder findRepairOrderByPhoneNumber(String phoneNumber)
-    {
-        return repairOrderRegistry.findRepairOrderByPhoneNumber(phoneNumber);
-    }
+    
+   /**
+   * Finds the repair order by phone number and returns it as a DTO.
+   * @param phoneNumber The phone number used as search criteria.
+   * @return <code>RepairOrderViewDTO</code> representing the found repair order,
+   * or <code>null</code> if no match is found.
+   */
+   public RepairOrderViewDTO findRepairOrderByPhoneNumber(String phoneNumber)
+   {
+        RepairOrder repairOrder =
+        repairOrderRegistry.findRepairOrderByPhoneNumber(phoneNumber);
+
+        return createRepairOrderViewDTO(repairOrder);
+   }
+
     
     /**
      * Adds the result to a specific diagnostic task in a repair order.
@@ -130,6 +150,37 @@ public class Controller
     private void updateRepairOrder(RepairOrder repairOrder)
     {
         repairOrderRegistry.updateRepairOrder(repairOrder);
+    }
+    
+    private RepairOrderViewDTO createRepairOrderViewDTO(RepairOrder repairOrder)
+    {
+        if(repairOrder == null)
+            return null;
+        
+        List<String> repairTasks = new ArrayList<>();
+
+        for(RepairTask repairTask : repairOrder.getRepairTasks())
+         {
+           repairTasks.add(repairTask.toString());
+         }
+
+        String totalCost = "";
+
+        if(repairOrder.getTotalCost() != null)
+         {
+           totalCost = repairOrder.getTotalCost().toString();
+         }
+
+        return new RepairOrderViewDTO(
+            repairOrder.getRepairOrderId(),
+            repairOrder.getCustomerDetails().toString(),
+            repairOrder.getProblemDescr(),
+            repairOrder.getDateTimeOfCreation(),
+            repairOrder.getEstimatedCompletionDate(),
+            repairOrder.getState().toString(),
+            repairOrder.getDiagnosticReport().toString(),
+            repairTasks,
+            totalCost);
     }
     
 }
