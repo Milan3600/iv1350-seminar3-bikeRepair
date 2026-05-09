@@ -15,3 +15,5 @@ The program is structured into five layers:
 - **integration** – Contains the registry creator and external system interfaces (registries and printer).
 
 In total, there are **54 tests** and **9 test classes**.
+## Update
+The repository was updated after feedback. Minor improvements were made to the program structure and tests.
